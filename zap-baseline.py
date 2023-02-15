@@ -275,6 +275,7 @@ def main(argv):
             use_af = False
         elif opt == '--url-file':
             url_file = arg
+            af_supported = False
 
     check_zap_client_version()
 
