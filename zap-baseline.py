@@ -68,8 +68,6 @@ ignore_scan_rules = ['-1', '50003', '60000', '60001']
 # Pscan rules that are being addressed
 in_progress_issues = {}
 
-application_urls = []
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 # Hide "Starting new HTTP connection" messages
 logging.getLogger("requests").setLevel(logging.WARNING)
@@ -343,11 +341,6 @@ def main(argv):
                 if issue["state"] == "inprogress":
                     in_progress_issues[issue["id"]] = issue
 
-    if url_file:
-        with open(os.path.join(base_dir, url_file)) as f:
-            for url in f:
-                application_urls.append(url.rstrip())
-
     if running_in_docker():
         if use_af and af_supported:
             print('Using the Automation Framework')
@@ -468,7 +461,7 @@ def main(argv):
                 params = [
                           '-config', 'spider.maxDuration=' + str(mins),
                           '-addonupdate',
-                          '-addoninstall', 'pscanrulesBeta']  # In case we're running in the stable container
+                          '-addoninstall', 'pscanrulesBeta', '-addoninstall', 'exim']  # In case we're running in the stable container
     
                 if zap_alpha:
                     params.append('-addoninstall')
@@ -527,9 +520,9 @@ def main(argv):
             # The url can include a valid path, but always reset to spider the host
             target = target[0:target.index('/', 8)+1]
 
-        for url in application_urls:
-            logging.debug('Access URL ' + url)
-            zap_access_target(zap, url)
+        if url_file:
+            res = zap.exim.import_urls(os.path.join(base_dir, url_file))
+            logging.debug('Import warnings: ' + str(res))
 
         time.sleep(2)
 
